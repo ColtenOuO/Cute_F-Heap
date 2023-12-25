@@ -52,9 +52,15 @@ void insert_child(struct Node* p,struct Node* chi) // parent and child
 }
 void unite(struct f_heap* target)
 {
-    //printf("unite check\n");
+  //  printf("unite check\n");
+   // printf("target= %d\n",target->FibHeap->key);
     int num = target -> FibHeap -> degree;
-    if( check_degree[num] == NULL ) return;
+    if( check_degree[num] == NULL )
+    {
+        check_degree[num] = target;
+        return;
+    }
+    else if( check_degree[num] == target ) return;
 
     struct f_heap* a = target;
     struct f_heap* b = check_degree[num];
@@ -70,6 +76,8 @@ void unite(struct f_heap* target)
     if( check_degree[num+1] != NULL ) unite(b);
     else check_degree[num+1] = b;
 
+    check_degree[num] = NULL;
+
     return;
 }
 struct Node* create_node(struct Node* p,int target_key,int target_value)
@@ -84,6 +92,7 @@ struct Node* create_node(struct Node* p,int target_key,int target_value)
 }
 void insert_root(struct Node* target)
 {
+   // printf("check insert root\n");
     target -> parent = NULL;
     if( now -> FibHeap == NULL ) head -> FibHeap = target, head -> min_key = target -> key;
     else
@@ -103,7 +112,7 @@ void insert_root(struct Node* target)
 }
 void delete_root(struct f_heap* target,int ex) // ex: delete root 的操作是給 extract 的 (關係到要不要拉 children 進 list)
 {
-    check_degree[target->FibHeap->degree] = NULL;   
+    check_degree[target->FibHeap->degree] = NULL;
     struct f_heap* p = head;
     struct f_heap* front = NULL; // 前一個人
     while( p != NULL && p != target )
@@ -123,7 +132,7 @@ void delete_root(struct f_heap* target,int ex) // ex: delete root 的操作是�
 
     if( ex != 1 ) return; // unite 不用拔 children
     struct Node* chi = target -> FibHeap -> child_head;
-    while( chi != NULL )
+    while( chi != NULL /*&& chi -> parent == target -> FibHeap*/ )
     {
         insert_root(chi);
         chi -> parent = 0, chi = chi -> next;
@@ -146,9 +155,13 @@ struct f_heap* extract()
     struct f_heap* best = head;
     while( p != NULL )
     {
+        printf("%d ",p->min_key);
         if( p -> min_key < best -> min_key ) best = p;
         p = p -> next;
     }
+    printf("\n");
+    
+    if( best -> FibHeap == NULL ) return NULL;
 
     return best;
 }
@@ -167,9 +180,69 @@ struct Node* find(struct Node* pos,int target_key,int target_val)
     
     return NULL; // NOT FOUND
 }
-void delete(int target_key,int target_val)
+void delete_node(struct Node* target)
 {
-    // 接下來要寫刪除給 decrease 還有操作用
+    struct Node* now = target -> child_head;
+    struct Node* front = NULL;
+    while( now != NULL )
+    {
+        now -> parent = NULL;
+        insert_root(now);
+        front = now;
+        now = now -> next;
+        front -> next = NULL;
+    }
+
+    if( target -> parent != NULL )
+    {
+        struct Node* p = target -> parent;
+        struct Node* pos = p -> child_head;
+        struct Node* f = NULL; // front
+        while( pos != target ) f = pos, pos = pos -> next;
+
+        if( f == NULL && pos -> next == NULL ) p -> child_head = NULL;
+        else if( f == NULL && pos -> next != NULL ) p -> child_head = pos -> next;
+        else if( f != NULL && pos -> next != NULL ) f -> next = p -> next, p -> next = NULL;
+        else if( f != NULL && pos -> next == NULL ) f -> next = NULL;
+    }
+
+    target -> child_head = target -> next = NULL;
+
+    return;
+}
+void delete_target(int target_key,int target_val)
+{
+    struct f_heap* now_pos = head;
+    struct Node* p = NULL;
+    while( p == NULL && now_pos != NULL )
+    {
+        p = find(now_pos->FibHeap,target_key,target_val);
+        if( p != NULL ) break;
+        now_pos = now_pos -> next;
+    }
+    if( p == NULL ) printf("Debug: NOT FOUND\n");
+
+    if( p -> parent == NULL )
+    {
+        delete_root(now_pos,1);
+    }
+    else
+    {
+        p -> parent -> degree -= 1;
+        if( p -> parent -> parent == NULL ) // parent is a root
+        {
+            struct f_heap* now_pos = head;
+            while( now_pos != NULL && now_pos -> FibHeap != p -> parent ) now_pos = now_pos -> next;
+            check_degree[now_pos->FibHeap->degree] = NULL;
+            now_pos -> FibHeap -> degree -= 1;
+
+            if( check_degree[now_pos->FibHeap->degree] != NULL ) unite(now_pos);
+            else check_degree[now_pos->FibHeap->degree] = now_pos;
+        }
+        delete_node(p);
+    }
+
+    return;
 }
 void decrease(int target_key,int target_val,int d)
 {
@@ -195,8 +268,11 @@ void decrease(int target_key,int target_val,int d)
     p -> key -= d;
     if( p -> key < p -> parent -> key )
     {
-        p -> parent = NULL;
+        struct Node* tmp = p -> parent;
         insert_root(p);
+        p -> parent = tmp;
+        delete_node(p);
+        p -> parent = NULL;
     }
 
 
@@ -208,9 +284,20 @@ int main()
     char s[10];
     while( scanf("%s",s) )
     {
+        struct f_heap* now_pos = head;
+        struct Node* p = NULL;
+        while( p == NULL && now_pos != NULL )
+        {
+            p = find(now_pos->FibHeap,5,5);
+            if( p != NULL ) break;
+            now_pos = now_pos -> next;
+        }
+        if( p == NULL ) printf("5: NOT FOUND\n");
+        else printf("5 Found\n");
         if( s[0] == 'e' )
         {
             struct f_heap* ans = extract();
+            if( ans == NULL ) continue;
             printf("(%lld)%lld\n",ans->FibHeap->key,ans->FibHeap->val);
             delete_root(ans,1);
         }
@@ -226,5 +313,12 @@ int main()
             scanf("%lld %lld %lld",&target_key,&target_val,&d);
             decrease(target_key,target_val,d);
         }
+        if( s[0] == 'd' && s[1] == 'e' && s[2] == 'l' )
+        {
+            int target_key,target_val;
+            scanf("%lld %lld",&target_key,&target_val);
+            delete_target(target_key,target_val);
+        }
+        if( s[0] == 'q' ) break; 
     }
 }

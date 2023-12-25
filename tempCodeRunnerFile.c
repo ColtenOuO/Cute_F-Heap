@@ -1,2 +1,1 @@
-
-    head -> FibHeap = NULL;
+i
