@@ -148,21 +148,27 @@ void delete_root(struct f_heap* target,int ex) // ex: delete root 的操作是�
         printf("Not Found: %lld\n",target->FibHeap->key);
     }
 
+    int empty = 0;
+
+    if( p -> next == NULL && front == NULL ) empty = 1;
+
     if( ex == 1 )
     {
         struct Node* chi = target -> FibHeap -> child_head;
+        int total = 0;
         while( chi != NULL /*&& chi -> parent == target -> FibHeap*/ )
         {
-         //   printf("insert child: %lld\n",chi->key);
+           // printf("insert child: %lld\n",chi->key);
+       //     if( chi -> key == target -> FibHeap -> key ) continue;
             insert_root(chi);
             chi -> parent = 0, chi = chi -> next;
-        } 
+            total++;
+        }
     }
 
     if( front == NULL && p -> next != NULL ) head = p -> next; // target == head
     else if( p -> next == NULL && front != NULL ) now = front, now -> next = NULL; // target == last
-    else if( p -> next == NULL && front == NULL ) init_f_heap();
-    else front -> next = p -> next;
+    else if( p -> next != NULL && front != NULL ) front -> next = p -> next;
 
     return;
 }
@@ -307,22 +313,25 @@ void decrease(int target_key,int target_val,int d)
 signed main()
 {
     init_f_heap(), degree_init();
-    char s[10];
+    char s[30] = {};
+    int cnt = 0;
     while( scanf("%s",s) )
     {
-      //  print_child(head);
+        if( s[0] == 'q' ) break;
         if( s[0] == 'e' )
         {
             struct f_heap* ans = extract();
             if( ans == NULL ) continue;
             printf("(%lld)%lld\n",ans->FibHeap->key,ans->FibHeap->val);
             delete_root(ans,1);
+            cnt--;
         }
         if( s[0] == 'i' )
         {
             int target_key,target_val;
             scanf("%lld %lld",&target_key,&target_val);
             insert_new_node(target_key,target_val);
+            cnt++;
         }
         if( s[0] == 'd' && s[1] == 'e' && s[2] == 'c' )
         {
@@ -335,11 +344,9 @@ signed main()
             int target_key,target_val;
             scanf("%lld %lld",&target_key,&target_val);
             delete_target(target_key,target_val);
+            cnt--;
         }
-        if( s[0] == 'q' ) break;
 
-        struct f_heap* pos = head;
-     //   while( pos != NULL ) printf("%lld ",pos->FibHeap->key), pos = pos -> next;
-      //  printf("\n");
+        if( cnt == 0 ) init_f_heap(),degree_init();
     }
 }
