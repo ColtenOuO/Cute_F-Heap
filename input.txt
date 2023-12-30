@@ -1,34 +1,53 @@
-insert 1 1001
-insert 2 1002
-insert 100 1001
-delete 100 1001
-insert 3 1003
-insert 4 1004
-insert 100 1001
-delete 100 1001
-insert 5 1005
-insert 6 1006
-insert 100 1001
-delete 100 1001
-insert 7 1007
-insert 8 1008
-insert 100 1001
-delete 100 1001
-delete 6 1006
-delete 7 1007
-decrease 4 1004 1000
-extract
-extract
-extract
-extract
-extract
-extract
-extract
-insert 1 7
-insert 1 9
-insert 1 13
-delete 1 13
-delete 1 7
-extract
-extract
+search 50
+insert 50
+search 50
+search 0
+insert 10
+search 50
+search 10
+search 0
+insert 80
+search 50
+search 10
+search 80
+search 0
+insert 90
+search 50
+search 10
+search 80
+search 90
+search 0
+insert 70
+search 50
+search 10
+search 80
+search 70
+search 90
+search 0
+insert 60
+search 50
+search 10
+search 80
+search 70
+search 90
+search 60
+search 0
+insert 65
+search 50
+search 10
+search 80
+search 65
+search 90
+search 60
+search 70
+search 0
+insert 62
+search 65
+search 50
+search 80
+search 10
+search 60
+search 70
+search 90
+search 62
 quit
